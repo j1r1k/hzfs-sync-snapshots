@@ -1,0 +1,12 @@
+#!/bin/bash
+set -o errexit -o nounset -o pipefail
+
+if [ ${#} -ne 2 ]; then
+    echo "Usage: ${0} SRC-ZPOOL TRG-ZPOOL"
+    exit 1
+fi
+
+zfs list -t snapshot -o name -H | hzfs-synchronize-snapshots "${1}" "${2}" | while read -r -a FS; do
+    echo "Sending \"${FS[0]}\" to \"${FS[1]}\" into \"${FS[2]}\""
+    zfs send -I "${FS[0]}" "${FS[1]}" | zfs recv "${FS[2]}"
+done
